@@ -1,5 +1,8 @@
 package br.com.fullcycle.hexagonal.controllers;
 
+import br.com.fullcycle.hexagonal.application.exceptions.ValidationException;
+import br.com.fullcycle.hexagonal.application.usecases.CreatePartnerUseCase;
+import br.com.fullcycle.hexagonal.application.usecases.GetPartnerById;
 import br.com.fullcycle.hexagonal.dtos.PartnerDTO;
 import br.com.fullcycle.hexagonal.models.Partner;
 import br.com.fullcycle.hexagonal.services.PartnerService;
@@ -18,31 +21,22 @@ public class PartnerController {
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody PartnerDTO dto) {
-        if (partnerService.findByCnpj(dto.getCnpj()).isPresent()) {
-            return ResponseEntity.unprocessableEntity().body("Partner already exists");
+        try {
+            final var useCase = new CreatePartnerUseCase(partnerService);
+            final var output = useCase.execute(new CreatePartnerUseCase.Input(dto.getCnpj(), dto.getName(), dto.getEmail()));
+
+            return ResponseEntity.created(URI.create("/partners/" + output.id())).body(output);
+        } catch (ValidationException ex) {
+            return ResponseEntity.unprocessableEntity().body(ex.getMessage());
         }
-        if (partnerService.findByEmail(dto.getEmail()).isPresent()) {
-            return ResponseEntity.unprocessableEntity().body("Partner already exists");
-        }
-
-        var partner = new Partner();
-        partner.setName(dto.getName());
-        partner.setCnpj(dto.getCnpj());
-        partner.setEmail(dto.getEmail());
-
-        partner = partnerService.save(partner);
-
-        return ResponseEntity.created(URI.create("/partners/" + partner.getId())).body(partner);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable Long id) {
-        var partner = partnerService.findById(id);
-        if (partner.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        final var useCase = new GetPartnerById(partnerService);
 
-        return ResponseEntity.ok(partner.get());
+        return useCase.execute(new GetPartnerById.Input(id))
+                .map(ResponseEntity::ok)
+                .orElseGet(ResponseEntity.notFound()::build);
     }
-
 }
