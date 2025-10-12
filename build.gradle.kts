@@ -1,14 +1,14 @@
 plugins {
 	java
-	id("org.springframework.boot") version "3.1.2"
-	id("io.spring.dependency-management") version "1.1.2"
+	id("org.springframework.boot") version "3.5.3"
+	id("io.spring.dependency-management") version "1.1.7"
 }
 
 group = "br.com.fullcycle"
 version = "0.0.1-SNAPSHOT"
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-	implementation("io.hypersistence:hypersistence-tsid:2.1.0")
+	implementation("io.hypersistence:hypersistence-tsid:2.1.1")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-graphql")
 	implementation("org.springframework.boot:spring-boot-starter-web")
