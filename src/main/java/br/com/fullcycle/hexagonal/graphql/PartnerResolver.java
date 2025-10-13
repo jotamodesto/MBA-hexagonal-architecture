@@ -1,7 +1,7 @@
 package br.com.fullcycle.hexagonal.graphql;
 
 import br.com.fullcycle.hexagonal.application.usecases.CreatePartnerUseCase;
-import br.com.fullcycle.hexagonal.application.usecases.GetPartnerById;
+import br.com.fullcycle.hexagonal.application.usecases.GetPartnerByIdUseCase;
 import br.com.fullcycle.hexagonal.dtos.PartnerDTO;
 import br.com.fullcycle.hexagonal.services.PartnerService;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -27,9 +27,9 @@ public class PartnerResolver {
     }
 
     @QueryMapping
-    public GetPartnerById.Output partnerOfId(@Argument Long id) {
-        final var useCase = new GetPartnerById(partnerService);
-        return useCase.execute(new GetPartnerById.Input(id))
+    public GetPartnerByIdUseCase.Output partnerOfId(@Argument Long id) {
+        final var useCase = new GetPartnerByIdUseCase(partnerService);
+        return useCase.execute(new GetPartnerByIdUseCase.Input(id))
                 .orElse(null);
     }
 }
