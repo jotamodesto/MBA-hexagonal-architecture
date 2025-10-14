@@ -2,9 +2,9 @@ package br.com.fullcycle.hexagonal.application.usecases;
 
 import br.com.fullcycle.hexagonal.application.UseCase;
 import br.com.fullcycle.hexagonal.application.exceptions.ValidationException;
-import br.com.fullcycle.hexagonal.models.Event;
-import br.com.fullcycle.hexagonal.services.EventService;
-import br.com.fullcycle.hexagonal.services.PartnerService;
+import br.com.fullcycle.hexagonal.infra.models.Event;
+import br.com.fullcycle.hexagonal.infra.services.EventService;
+import br.com.fullcycle.hexagonal.infra.services.PartnerService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

@@ -1,12 +1,12 @@
 package br.com.fullcycle.hexagonal.application.usecases;
 
 import br.com.fullcycle.hexagonal.application.exceptions.ValidationException;
-import br.com.fullcycle.hexagonal.models.Customer;
-import br.com.fullcycle.hexagonal.models.Event;
-import br.com.fullcycle.hexagonal.models.Ticket;
-import br.com.fullcycle.hexagonal.models.TicketStatus;
-import br.com.fullcycle.hexagonal.services.CustomerService;
-import br.com.fullcycle.hexagonal.services.EventService;
+import br.com.fullcycle.hexagonal.infra.models.Customer;
+import br.com.fullcycle.hexagonal.infra.models.Event;
+import br.com.fullcycle.hexagonal.infra.models.Ticket;
+import br.com.fullcycle.hexagonal.infra.models.TicketStatus;
+import br.com.fullcycle.hexagonal.infra.services.CustomerService;
+import br.com.fullcycle.hexagonal.infra.services.EventService;
 import io.hypersistence.tsid.TSID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
