@@ -10,19 +10,24 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.Objects;
 
 @RestController
 @RequestMapping(value = "partners")
 public class PartnerController {
 
-    @Autowired
-    private PartnerService partnerService;
+    private final CreatePartnerUseCase createPartnerUseCase;
+    private final GetPartnerByIdUseCase getPartnerByIdUseCase;
+
+    public PartnerController(CreatePartnerUseCase createPartnerUseCase, GetPartnerByIdUseCase getPartnerByIdUseCase) {
+        this.createPartnerUseCase = Objects.requireNonNull(createPartnerUseCase);
+        this.getPartnerByIdUseCase = Objects.requireNonNull(getPartnerByIdUseCase);
+    }
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody PartnerDTO dto) {
         try {
-            final var useCase = new CreatePartnerUseCase(partnerService);
-            final var output = useCase.execute(new CreatePartnerUseCase.Input(dto.getCnpj(), dto.getName(), dto.getEmail()));
+            final var output = createPartnerUseCase.execute(new CreatePartnerUseCase.Input(dto.getCnpj(), dto.getName(), dto.getEmail()));
 
             return ResponseEntity.created(URI.create("/partners/" + output.id())).body(output);
         } catch (ValidationException ex) {
@@ -32,9 +37,7 @@ public class PartnerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> get(@PathVariable Long id) {
-        final var useCase = new GetPartnerByIdUseCase(partnerService);
-
-        return useCase.execute(new GetPartnerByIdUseCase.Input(id))
+        return getPartnerByIdUseCase.execute(new GetPartnerByIdUseCase.Input(id))
                 .map(ResponseEntity::ok)
                 .orElseGet(ResponseEntity.notFound()::build);
     }
