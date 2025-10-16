@@ -1,13 +1,11 @@
 package br.com.fullcycle.hexagonal.application.usecases;
 
-import br.com.fullcycle.hexagonal.infra.models.Customer;
-import br.com.fullcycle.hexagonal.infra.services.CustomerService;
+import br.com.fullcycle.hexagonal.application.InMemoryCustomerRepository;
+import br.com.fullcycle.hexagonal.application.entities.Customer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import java.util.Optional;
 import java.util.UUID;
 
 class GetCustomerByIdUseCaseTest {
@@ -15,24 +13,19 @@ class GetCustomerByIdUseCaseTest {
     @DisplayName("Deve obter um cliente por id")
     public void testGetById() {
         // given
-        final var expectedId = UUID.randomUUID().getMostSignificantBits();
-        final var expectedCPF = "123456798901";
+        final var expectedCPF = "123.456.789-01";
         final var expectedEmail = "john.doe@gmail.com";
         final var expectedName = "John Doe";
 
-        final var aCustomer = new Customer();
-        aCustomer.setId(expectedId);
-        aCustomer.setCpf(expectedCPF);
-        aCustomer.setEmail(expectedEmail);
-        aCustomer.setName(expectedName);
+        final var customerRepository = new InMemoryCustomerRepository();
+        final var aCustomer = Customer.newCustomer(expectedName, expectedCPF, expectedEmail);
+        final var expectedId = aCustomer.customerId().value().toString();
+        customerRepository.create(aCustomer);
 
         final var input = new GetCustomerByIdUseCase.Input(expectedId);
 
         // when
-        final var customerService = Mockito.mock(CustomerService.class);
-        Mockito.when(customerService.findById(expectedId)).thenReturn(Optional.of(aCustomer));
-
-        final var useCase = new GetCustomerByIdUseCase(customerService);
+        final var useCase = new GetCustomerByIdUseCase(customerRepository);
         final var output = useCase.execute(input).get();
 
         // then
@@ -46,15 +39,13 @@ class GetCustomerByIdUseCaseTest {
     @DisplayName("Deve obter vazio quando o cliente não existe")
     public void testGetByIdEmpty() {
         // given
-        final var expectedId = UUID.randomUUID().getMostSignificantBits();
+        final var expectedId = UUID.randomUUID().toString();
 
+        final var customerRepository = new InMemoryCustomerRepository();
         final var input = new GetCustomerByIdUseCase.Input(expectedId);
 
         // when
-        final var customerService = Mockito.mock(CustomerService.class);
-        Mockito.when(customerService.findById(expectedId)).thenReturn(Optional.empty());
-
-        final var useCase = new GetCustomerByIdUseCase(customerService);
+        final var useCase = new GetCustomerByIdUseCase(customerRepository);
         final var output = useCase.execute(input);
 
         // then

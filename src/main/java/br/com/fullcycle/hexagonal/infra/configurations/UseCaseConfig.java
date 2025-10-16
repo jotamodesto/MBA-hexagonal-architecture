@@ -24,7 +24,8 @@ public class UseCaseConfig {
 
     @Bean
     public CreateCustomerUseCase createCustomerUseCase() {
-        return new CreateCustomerUseCase(this.customerService);
+        // TODO: Implement CustomerRepository and inject here
+        return new CreateCustomerUseCase(null);
     }
 
     @Bean
@@ -33,22 +34,26 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public CreatePartnerUseCase createPartnerUseCase(){
-        return new CreatePartnerUseCase(partnerService);
+    public CreatePartnerUseCase createPartnerUseCase() {
+        // TODO: Implement PartnerRepository and inject here
+        return new CreatePartnerUseCase(null);
     }
 
     @Bean
-    public GetCustomerByIdUseCase getCustomerByIdUseCase(){
-        return new GetCustomerByIdUseCase(customerService);
+    public GetCustomerByIdUseCase getCustomerByIdUseCase() {
+        // TODO: Implement CustomerRepository and inject here
+        return new GetCustomerByIdUseCase(null);
     }
 
     @Bean
-    public GetPartnerByIdUseCase getPartnerByIdUseCase(){
-        return new GetPartnerByIdUseCase(partnerService);
+    public GetPartnerByIdUseCase getPartnerByIdUseCase() {
+        // TODO: Implement PartnerRepository and inject here
+        return new GetPartnerByIdUseCase(null);
+
     }
 
     @Bean
-    public SubscribeCustomerToEventUseCase subscribeCustomerToEventUseCase(){
+    public SubscribeCustomerToEventUseCase subscribeCustomerToEventUseCase() {
         return new SubscribeCustomerToEventUseCase(customerService, eventService);
     }
 }
