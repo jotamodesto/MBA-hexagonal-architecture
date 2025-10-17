@@ -1,15 +1,17 @@
 package br.com.fullcycle.hexagonal.application.usecases;
 
 import br.com.fullcycle.hexagonal.application.UseCase;
-import br.com.fullcycle.hexagonal.application.entities.Customer;
+import br.com.fullcycle.hexagonal.application.domain.Customer;
 import br.com.fullcycle.hexagonal.application.exceptions.ValidationException;
 import br.com.fullcycle.hexagonal.application.repositories.CustomerRepository;
+
+import java.util.Objects;
 
 public class CreateCustomerUseCase extends UseCase<CreateCustomerUseCase.Input, CreateCustomerUseCase.Output> {
     private final CustomerRepository customerRepository;
 
     public CreateCustomerUseCase(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
+        this.customerRepository = Objects.requireNonNull(customerRepository);
     }
 
     @Override
@@ -25,7 +27,7 @@ public class CreateCustomerUseCase extends UseCase<CreateCustomerUseCase.Input, 
         var customer = customerRepository.create(Customer.newCustomer(input.name, input.cpf, input.email));
 
         return new Output(
-                customer.customerId().value().toString(),
+                customer.customerId().value(),
                 customer.cpf().value(),
                 customer.email().value(),
                 customer.name().value()

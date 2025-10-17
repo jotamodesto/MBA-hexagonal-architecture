@@ -1,16 +1,17 @@
 package br.com.fullcycle.hexagonal.application.usecases;
 
 import br.com.fullcycle.hexagonal.application.UseCase;
-import br.com.fullcycle.hexagonal.application.entities.CustomerId;
+import br.com.fullcycle.hexagonal.application.domain.CustomerId;
 import br.com.fullcycle.hexagonal.application.repositories.CustomerRepository;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class GetCustomerByIdUseCase extends UseCase<GetCustomerByIdUseCase.Input, Optional<GetCustomerByIdUseCase.Output>> {
     private final CustomerRepository customerRepository;
 
     public GetCustomerByIdUseCase(final CustomerRepository customerService) {
-        this.customerRepository = customerService;
+        this.customerRepository = Objects.requireNonNull(customerService);
     }
 
     @Override
@@ -18,7 +19,7 @@ public class GetCustomerByIdUseCase extends UseCase<GetCustomerByIdUseCase.Input
         return customerRepository.customerOfId(CustomerId.with(input.id()))
                 .map(
                         c -> new Output(
-                                c.customerId().value().toString(),
+                                c.customerId().value(),
                                 c.cpf().value(),
                                 c.email().value(),
                                 c.name().value()

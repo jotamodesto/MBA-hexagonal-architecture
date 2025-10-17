@@ -1,10 +1,10 @@
-package br.com.fullcycle.hexagonal.application.entities;
+package br.com.fullcycle.hexagonal.application.domain;
 
 import br.com.fullcycle.hexagonal.application.exceptions.ValidationException;
 
 import java.util.UUID;
 
-public record CustomerId(UUID value) implements CanonicalId {
+public record CustomerId(String value) implements CanonicalId {
 
     public CustomerId {
         if (value == null) {
@@ -13,12 +13,12 @@ public record CustomerId(UUID value) implements CanonicalId {
     }
 
     public static CustomerId unique() {
-        return new CustomerId(UUID.randomUUID());
+        return new CustomerId(UUID.randomUUID().toString());
     }
 
     public static CustomerId with(final String value) {
         try {
-            return new CustomerId(UUID.fromString(value));
+            return new CustomerId(UUID.fromString(value).toString());
         } catch (IllegalArgumentException e) {
             throw new ValidationException("Invalid value for CustomerId");
         }

@@ -1,59 +1,68 @@
 package br.com.fullcycle.hexagonal.application.usecases;
 
+import br.com.fullcycle.hexagonal.application.InMemoryCustomerRepository;
+import br.com.fullcycle.hexagonal.application.InMemoryEventRepository;
+import br.com.fullcycle.hexagonal.application.InMemoryTicketRepository;
+import br.com.fullcycle.hexagonal.application.domain.*;
 import br.com.fullcycle.hexagonal.application.exceptions.ValidationException;
-import br.com.fullcycle.hexagonal.infra.models.Customer;
-import br.com.fullcycle.hexagonal.infra.models.Event;
-import br.com.fullcycle.hexagonal.infra.models.Ticket;
 import br.com.fullcycle.hexagonal.infra.models.TicketStatus;
-import br.com.fullcycle.hexagonal.infra.services.CustomerService;
-import br.com.fullcycle.hexagonal.infra.services.EventService;
-import io.hypersistence.tsid.TSID;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class SubscribeCustomerToEventUseCaseTest {
+
+    SubscribeCustomerToEventUseCase useCase;
+
+    private InMemoryCustomerRepository customerRepository;
+    private InMemoryEventRepository eventRepository;
+
+    private Customer johnDoe;
+    private Partner disney;
+    private Event disneyOnIce;
+
+    @BeforeEach
+    void setUp() {
+        customerRepository = new InMemoryCustomerRepository();
+        eventRepository = new InMemoryEventRepository();
+
+        useCase = new SubscribeCustomerToEventUseCase(
+                customerRepository,
+                eventRepository,
+                new InMemoryTicketRepository()
+        );
+
+        johnDoe = Customer.newCustomer("John Doe", "123.456.789-01", "john.doe@gmail.com");
+        disney = Partner.newPartner("Disney", "12.345.678/0001-00", "disney@disney.com");
+        disneyOnIce = Event.newEvent("Disney on Ice", "2025-01-01", 10, disney);
+    }
+
     @Test
     @DisplayName("Deve comprar um ticket de um evento")
     public void testReserveTicket() {
         // given
         final var expectedTicketsSize = 1;
-        final long expectedCustomerId = TSID.fast().toLong();
-        final long expectedEventId = TSID.fast().toLong();
+        final var expectedCustomerId = johnDoe.customerId().value();
+        final var expectedEventId = disneyOnIce.eventId().value();
 
-        final var aEvent = new Event();
-        aEvent.setId(expectedEventId);
-        aEvent.setName("Disney");
-        aEvent.setTotalSpots(10);
 
-        final var subscribeInput = new SubscribeCustomerToEventUseCase.Input(aEvent.getId(), expectedCustomerId);
+        final var subscribeInput = new SubscribeCustomerToEventUseCase.Input(expectedEventId, expectedCustomerId);
 
         // when
-        final var customerService = mock(CustomerService.class);
-        final var eventService = mock(EventService.class);
+        customerRepository.create(johnDoe);
+        eventRepository.create(disneyOnIce);
 
-        when(customerService.findById(expectedCustomerId)).thenReturn(Optional.of(new Customer()));
-        when(eventService.findById(expectedEventId)).thenReturn(Optional.of(aEvent));
-        when(eventService.findTicketByEventIdAndCustomerId(expectedEventId, expectedCustomerId)).thenReturn(Optional.empty());
-        when(eventService.save(any())).thenAnswer(a -> {
-            final var event = a.getArgument(0, Event.class);
-            Assertions.assertEquals(expectedTicketsSize, event.getTickets().size());
-            return event;
-        });
-
-        final var useCase = new SubscribeCustomerToEventUseCase(customerService, eventService);
         final var output = useCase.execute(subscribeInput);
 
         // then
         Assertions.assertEquals(expectedEventId, output.eventId());
+        Assertions.assertNotNull(output.ticketId());
         Assertions.assertNotNull(output.reservationDate());
         Assertions.assertEquals(TicketStatus.PENDING.name(), output.ticketStatus());
+
+        final var actualEvent = eventRepository.eventOfId(disneyOnIce.eventId());
+        Assertions.assertEquals(expectedTicketsSize, actualEvent.get().allTickets().size());
     }
 
     @Test
@@ -61,19 +70,13 @@ class SubscribeCustomerToEventUseCaseTest {
     public void testShouldNotBuyTicketOfEmptyEvent() {
         // given
         final var expectedError = "Event not found";
-        final long expectedCustomerId = TSID.fast().toLong();
-        final long expectedEventId = TSID.fast().toLong();
+        final var expectedCustomerId = johnDoe.customerId().value();
+        final var expectedEventId = disneyOnIce.eventId().value();
 
         final var subscribeInput = new SubscribeCustomerToEventUseCase.Input(expectedEventId, expectedCustomerId);
 
         // when
-        final var customerService = mock(CustomerService.class);
-        final var eventService = mock(EventService.class);
-
-        when(customerService.findById(expectedCustomerId)).thenReturn(Optional.of(new Customer()));
-        when(eventService.findById(expectedEventId)).thenReturn(Optional.empty());
-
-        final var useCase = new SubscribeCustomerToEventUseCase(customerService, eventService);
+        customerRepository.create(johnDoe);
         final var actualException = Assertions.assertThrows(ValidationException.class, () -> useCase.execute(subscribeInput));
 
         // then
@@ -85,18 +88,14 @@ class SubscribeCustomerToEventUseCaseTest {
     public void testShouldNotBuyTicketOfEmptyCustomer() {
         // given
         final var expectedError = "Customer not found";
-        final long expectedCustomerId = TSID.fast().toLong();
-        final long expectedEventId = TSID.fast().toLong();
+        final var expectedCustomerId = CustomerId.unique().value();
+        final var expectedEventId = disneyOnIce.eventId().value();
 
         final var subscribeInput = new SubscribeCustomerToEventUseCase.Input(expectedEventId, expectedCustomerId);
 
         // when
-        final var customerService = mock(CustomerService.class);
-        final var eventService = mock(EventService.class);
+        eventRepository.create(disneyOnIce);
 
-        when(customerService.findById(expectedCustomerId)).thenReturn(Optional.empty());
-
-        final var useCase = new SubscribeCustomerToEventUseCase(customerService, eventService);
         final var actualException = Assertions.assertThrows(ValidationException.class, () -> useCase.execute(subscribeInput));
 
         // then
@@ -107,26 +106,17 @@ class SubscribeCustomerToEventUseCaseTest {
     @DisplayName("Um cliente não deve comprar mais de um ticket para o mesmo evento")
     public void testShouldNotBuyTicketTwiceForTheSameEvent() {
         // given
-        final var expectedError = "Email already registered";
-        final long expectedCustomerId = TSID.fast().toLong();
-        final long expectedEventId = TSID.fast().toLong();
-
-        final var aEvent = new Event();
-        aEvent.setId(expectedEventId);
-        aEvent.setName("Disney");
-        aEvent.setTotalSpots(10);
+        final var expectedError = "Customer already has a ticket for this event";
+        final var expectedCustomerId = johnDoe.customerId().value();
+        final var expectedEventId = disneyOnIce.eventId().value();
 
         final var subscribeInput = new SubscribeCustomerToEventUseCase.Input(expectedEventId, expectedCustomerId);
 
         // when
-        final var customerService = mock(CustomerService.class);
-        final var eventService = mock(EventService.class);
+        customerRepository.create(johnDoe);
+        disneyOnIce.reserveTicket(johnDoe.customerId());
+        eventRepository.create(disneyOnIce);
 
-        when(customerService.findById(expectedCustomerId)).thenReturn(Optional.of(new Customer()));
-        when(eventService.findById(expectedEventId)).thenReturn(Optional.of(aEvent));
-        when(eventService.findTicketByEventIdAndCustomerId(expectedEventId, expectedCustomerId)).thenReturn(Optional.of(new Ticket()));
-
-        final var useCase = new SubscribeCustomerToEventUseCase(customerService, eventService);
         final var actualException = Assertions.assertThrows(ValidationException.class, () -> useCase.execute(subscribeInput));
 
         // then
@@ -137,26 +127,18 @@ class SubscribeCustomerToEventUseCaseTest {
     @DisplayName("Um cliente não deve comprar de um evento esgotado")
     public void testShouldNotBuyTicketOfSoldOutEvent() {
         // given
-        final var expectedError = "Event sold out";
-        final long expectedCustomerId = TSID.fast().toLong();
-        final long expectedEventId = TSID.fast().toLong();
+        disneyOnIce = Event.newEvent("Disney on Ice", "2025-01-01", 0, disney);
 
-        final var aEvent = new Event();
-        aEvent.setId(expectedEventId);
-        aEvent.setName("Disney");
-        aEvent.setTotalSpots(0);
+        final var expectedError = "Event sold out";
+        final var expectedCustomerId = johnDoe.customerId().value();
+        final var expectedEventId = disneyOnIce.eventId().value();
 
         final var subscribeInput = new SubscribeCustomerToEventUseCase.Input(expectedEventId, expectedCustomerId);
 
         // when
-        final var customerService = mock(CustomerService.class);
-        final var eventService = mock(EventService.class);
+        customerRepository.create(johnDoe);
+        eventRepository.create(disneyOnIce);
 
-        when(customerService.findById(expectedCustomerId)).thenReturn(Optional.of(new Customer()));
-        when(eventService.findById(expectedEventId)).thenReturn(Optional.of(aEvent));
-        when(eventService.findTicketByEventIdAndCustomerId(expectedEventId, expectedCustomerId)).thenReturn(Optional.empty());
-
-        final var useCase = new SubscribeCustomerToEventUseCase(customerService, eventService);
         final var actualException = Assertions.assertThrows(ValidationException.class, () -> useCase.execute(subscribeInput));
 
         // then

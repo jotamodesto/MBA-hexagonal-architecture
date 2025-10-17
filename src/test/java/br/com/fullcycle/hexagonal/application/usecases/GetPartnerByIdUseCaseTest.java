@@ -1,7 +1,7 @@
 package br.com.fullcycle.hexagonal.application.usecases;
 
 import br.com.fullcycle.hexagonal.application.InMemoryPartnerRepository;
-import br.com.fullcycle.hexagonal.application.entities.Partner;
+import br.com.fullcycle.hexagonal.application.domain.Partner;
 import br.com.fullcycle.hexagonal.application.repositories.PartnerRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ class GetPartnerByIdUseCaseTest {
     public void testGetById() {
         // given
         final var aPartner = Partner.newPartner(EXPECTED_NAME, EXPECTED_CNPJ, EXPECTED_EMAIL);
-        final var expectedId = aPartner.partnerId().value().toString();
+        final var expectedId = aPartner.partnerId().value();
         partnerRepository.create(aPartner);
 
         final var input = new GetPartnerByIdUseCase.Input(expectedId);

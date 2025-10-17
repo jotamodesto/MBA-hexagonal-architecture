@@ -1,7 +1,7 @@
 package br.com.fullcycle.hexagonal.application.usecases;
 
 import br.com.fullcycle.hexagonal.application.UseCase;
-import br.com.fullcycle.hexagonal.application.entities.PartnerId;
+import br.com.fullcycle.hexagonal.application.domain.PartnerId;
 import br.com.fullcycle.hexagonal.application.repositories.PartnerRepository;
 
 import java.util.Objects;
@@ -18,7 +18,7 @@ public class GetPartnerByIdUseCase extends UseCase<GetPartnerByIdUseCase.Input, 
     public Optional<Output> execute(Input input) {
         return partnerRepository.partnerOfId(PartnerId.with(input.id))
                 .map(p -> new Output(
-                                p.partnerId().value().toString(),
+                                p.partnerId().value(),
                                 p.cnpj().value(),
                                 p.name().value(),
                                 p.email().value()

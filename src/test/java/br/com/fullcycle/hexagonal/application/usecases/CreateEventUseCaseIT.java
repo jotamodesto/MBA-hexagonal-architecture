@@ -1,11 +1,11 @@
 package br.com.fullcycle.hexagonal.application.usecases;
 
 import br.com.fullcycle.hexagonal.IntegrationTest;
+import br.com.fullcycle.hexagonal.application.domain.PartnerId;
 import br.com.fullcycle.hexagonal.application.exceptions.ValidationException;
 import br.com.fullcycle.hexagonal.infra.models.Partner;
 import br.com.fullcycle.hexagonal.infra.repositories.EventRepository;
 import br.com.fullcycle.hexagonal.infra.repositories.PartnerRepository;
-import io.hypersistence.tsid.TSID;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,7 +35,7 @@ class CreateEventUseCaseIT {
         final var expectedDate = "2021-01-01";
         final var expectedName = "Disney on Ice";
         final var expectedTotalSpots = 100;
-        final var expectedPartnerId = partner.getId();
+        final var expectedPartnerId = partner.getId().toString();
 
         final var createInput = new CreateEventUseCase.Input(expectedDate, expectedName, expectedPartnerId, expectedTotalSpots);
 
@@ -57,7 +57,7 @@ class CreateEventUseCaseIT {
         final var expectedDate = "2021-01-01";
         final var expectedName = "Disney on Ice";
         final var expectedTotalSpots = 100;
-        final var expectedPartnerId = TSID.fast().toLong();
+        final var expectedPartnerId = PartnerId.unique().value();
         final var expectedError = "Partner not found";
 
         final var createInput = new CreateEventUseCase.Input(expectedDate, expectedName, expectedPartnerId, expectedTotalSpots);
