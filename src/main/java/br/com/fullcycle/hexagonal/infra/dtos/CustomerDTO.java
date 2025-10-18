@@ -1,9 +1,11 @@
 package br.com.fullcycle.hexagonal.infra.dtos;
 
-import br.com.fullcycle.hexagonal.infra.models.Customer;
+import br.com.fullcycle.hexagonal.infra.jpa.entities.CustomerEntity;
+
+import java.util.UUID;
 
 public class CustomerDTO {
-    private Long id;
+    private UUID id;
     private String name;
     private String cpf;
     private String email;
@@ -11,18 +13,18 @@ public class CustomerDTO {
     public CustomerDTO() {
     }
 
-    public CustomerDTO(Customer customer) {
-        this.id = customer.getId();
-        this.name = customer.getName();
-        this.cpf = customer.getCpf();
-        this.email = customer.getEmail();
+    public CustomerDTO(CustomerEntity customerEntity) {
+        this.id = customerEntity.getId();
+        this.name = customerEntity.getName();
+        this.cpf = customerEntity.getCpf();
+        this.email = customerEntity.getEmail();
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

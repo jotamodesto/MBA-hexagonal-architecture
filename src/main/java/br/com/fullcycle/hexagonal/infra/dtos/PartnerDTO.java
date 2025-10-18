@@ -1,6 +1,6 @@
 package br.com.fullcycle.hexagonal.infra.dtos;
 
-import br.com.fullcycle.hexagonal.infra.models.Partner;
+import br.com.fullcycle.hexagonal.infra.jpa.entities.PartnerEntity;
 
 public class PartnerDTO {
     private Long id;
@@ -15,11 +15,11 @@ public class PartnerDTO {
         this.id = id;
     }
 
-    public PartnerDTO(Partner partner) {
-        this.id = partner.getId();
-        this.name = partner.getName();
-        this.cnpj = partner.getCnpj();
-        this.email = partner.getEmail();
+    public PartnerDTO(PartnerEntity partnerEntity) {
+        this.id = partnerEntity.getId();
+        this.name = partnerEntity.getName();
+        this.cnpj = partnerEntity.getCnpj();
+        this.email = partnerEntity.getEmail();
     }
 
     public Long getId() {
