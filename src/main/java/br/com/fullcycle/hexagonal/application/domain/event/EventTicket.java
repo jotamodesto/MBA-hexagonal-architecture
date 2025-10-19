@@ -12,7 +12,7 @@ public class EventTicket {
     private final CustomerId customerId;
     private int ordering;
 
-    protected EventTicket(TicketId ticketId, EventId eventId, CustomerId customerId, Integer ordering) {
+    public EventTicket(TicketId ticketId, EventId eventId, CustomerId customerId, Integer ordering) {
         if (ticketId == null) {
             throw new ValidationException("Invalid ticketId for the EventTicket");
         }

@@ -1,24 +1,25 @@
 package br.com.fullcycle.hexagonal.application.usecases.customer;
 
 import br.com.fullcycle.hexagonal.IntegrationTest;
+import br.com.fullcycle.hexagonal.application.domain.customer.Customer;
 import br.com.fullcycle.hexagonal.application.exceptions.ValidationException;
-import br.com.fullcycle.hexagonal.infra.jpa.entities.CustomerEntity;
-import br.com.fullcycle.hexagonal.infra.jpa.repositories.CustomerJpaRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import br.com.fullcycle.hexagonal.application.repositories.CustomerRepository;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @IntegrationTest
 public class CreateCustomerEntityUseCaseIT {
+    public static final String EXPECTED_NAME = "John Doe";
+    public static final String EXPECTED_EMAIL = "john.doe@gmail.com";
+    private static final String EXPECTED_CPF = "123.456.789-01";
+
     @Autowired
     private CreateCustomerUseCase useCase;
     @Autowired
-    private CustomerJpaRepository customerRepository;
+    private CustomerRepository customerRepository;
 
-    @AfterEach
-    void tearDown() {
+    @BeforeEach
+    void setUp() {
         customerRepository.deleteAll();
     }
 
@@ -26,34 +27,28 @@ public class CreateCustomerEntityUseCaseIT {
     @DisplayName("Deve criar um cliente")
     public void testCreate() {
         // given
-        final var expectedCPF = "123456798901";
-        final var expectedEmail = "john.doe@gmail.com";
-        final var expectedName = "John Doe";
 
-        var createInput = new CreateCustomerUseCase.Input(expectedCPF, expectedEmail, expectedName);
+        var createInput = new CreateCustomerUseCase.Input(EXPECTED_CPF, EXPECTED_EMAIL, EXPECTED_NAME);
 
         // when
         final var output = useCase.execute(createInput);
 
         // then
         Assertions.assertNotNull(output.id());
-        Assertions.assertEquals(expectedCPF, output.cpf());
-        Assertions.assertEquals(expectedEmail, output.email());
-        Assertions.assertEquals(expectedName, output.name());
+        Assertions.assertEquals(EXPECTED_CPF, output.cpf());
+        Assertions.assertEquals(EXPECTED_EMAIL, output.email());
+        Assertions.assertEquals(EXPECTED_NAME, output.name());
     }
 
     @Test
     @DisplayName("Não deve cadastrar cliente com CPF existente")
     public void testCreateWithExistingCPFShouldFail() {
         // given
-        final var expectedCPF = "123456798901";
-        final var expectedEmail = "john.doe@gmail.com";
-        final var expectedName = "John Doe";
         final var expectedError = "Customer already exists";
 
-        createCustomer(expectedCPF, expectedEmail, expectedName);
+        createCustomer(EXPECTED_CPF, EXPECTED_EMAIL, EXPECTED_NAME);
 
-        final var createInput = new CreateCustomerUseCase.Input(expectedCPF, expectedEmail, expectedName);
+        final var createInput = new CreateCustomerUseCase.Input(EXPECTED_CPF, EXPECTED_EMAIL, EXPECTED_NAME);
 
         // when
         final var actualException = Assertions.assertThrows(ValidationException.class, () -> useCase.execute(createInput));
@@ -66,14 +61,11 @@ public class CreateCustomerEntityUseCaseIT {
     @DisplayName("Não deve cadastrar um cliente com e-mail duplicado")
     public void testCreateWithDuplicatedEmailShouldFail() {
         // given
-        final var expectedCPF = "123456798901";
-        final var expectedEmail = "john.doe@gmail.com";
-        final var expectedName = "John Doe";
         final var expectedError = "Customer already exists";
 
-        createCustomer("98765432109", expectedEmail, expectedName);
+        createCustomer("987.654.321-09", EXPECTED_EMAIL, EXPECTED_NAME);
 
-        final var createInput = new CreateCustomerUseCase.Input(expectedCPF, expectedEmail, expectedName);
+        final var createInput = new CreateCustomerUseCase.Input(EXPECTED_CPF, EXPECTED_EMAIL, EXPECTED_NAME);
 
         // when
         final var actualException = Assertions.assertThrows(ValidationException.class, () -> useCase.execute(createInput));
@@ -82,11 +74,11 @@ public class CreateCustomerEntityUseCaseIT {
         Assertions.assertEquals(expectedError, actualException.getMessage());
     }
 
-    private CustomerEntity createCustomer(final String cpf, final String email, final String name) {
-        final var aCustomer = new CustomerEntity();
-        aCustomer.setCpf(cpf);
-        aCustomer.setEmail(email);
-        aCustomer.setName(name);
-        return customerRepository.save(aCustomer);
+    private Customer createCustomer(final String cpf, final String email, final String name) {
+        return customerRepository.create(Customer.newCustomer(
+                name,
+                cpf,
+                email
+        ));
     }
 }

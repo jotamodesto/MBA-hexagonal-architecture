@@ -1,9 +1,12 @@
 package br.com.fullcycle.hexagonal.infra.controllers;
 
+import br.com.fullcycle.hexagonal.application.repositories.PartnerRepository;
 import br.com.fullcycle.hexagonal.infra.dtos.PartnerDTO;
-import br.com.fullcycle.hexagonal.infra.jpa.repositories.PartnerJpaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +28,7 @@ public class PartnerEntityControllerTest {
     private ObjectMapper mapper;
 
     @Autowired
-    private PartnerJpaRepository partnerRepository;
+    private PartnerRepository partnerRepository;
 
     @AfterEach
     void tearDown() {
@@ -37,7 +40,7 @@ public class PartnerEntityControllerTest {
     public void testCreate() throws Exception {
 
         var partner = new PartnerDTO();
-        partner.setCnpj("41536538000100");
+        partner.setCnpj("41.536.538/0001-00");
         partner.setEmail("john.doe@gmail.com");
         partner.setName("John Doe");
 
@@ -48,7 +51,7 @@ public class PartnerEntityControllerTest {
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.header().exists("Location"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isString())
                 .andReturn().getResponse().getContentAsByteArray();
 
         var actualResponse = mapper.readValue(result, PartnerDTO.class);
@@ -62,7 +65,7 @@ public class PartnerEntityControllerTest {
     public void testCreateWithDuplicatedCPFShouldFail() throws Exception {
 
         var partner = new PartnerDTO();
-        partner.setCnpj("41536538000100");
+        partner.setCnpj("41.536.538/0001-00");
         partner.setEmail("john.doe@gmail.com");
         partner.setName("John Doe");
 
@@ -74,7 +77,7 @@ public class PartnerEntityControllerTest {
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.header().exists("Location"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isString())
                 .andReturn().getResponse().getContentAsByteArray();
 
         partner.setEmail("john2@gmail.com");
@@ -94,7 +97,7 @@ public class PartnerEntityControllerTest {
     public void testCreateWithDuplicatedEmailShouldFail() throws Exception {
 
         var partner = new PartnerDTO();
-        partner.setCnpj("41536538000100");
+        partner.setCnpj("41.536.538/0001-00");
         partner.setEmail("john.doe@gmail.com");
         partner.setName("John Doe");
 
@@ -106,10 +109,10 @@ public class PartnerEntityControllerTest {
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.header().exists("Location"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isString())
                 .andReturn().getResponse().getContentAsByteArray();
 
-        partner.setCnpj("66666538000100");
+        partner.setCnpj("66.666.538/0001-00");
 
         // Tenta criar o segundo parceiro com o mesmo CNPJ
         this.mvc.perform(
@@ -126,7 +129,7 @@ public class PartnerEntityControllerTest {
     public void testGet() throws Exception {
 
         var partner = new PartnerDTO();
-        partner.setCnpj("41536538000100");
+        partner.setCnpj("41.536.538/0001-00");
         partner.setEmail("john.doe@gmail.com");
         partner.setName("John Doe");
 

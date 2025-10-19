@@ -1,21 +1,23 @@
 package br.com.fullcycle.hexagonal.infra.jpa.entities;
 
+import br.com.fullcycle.hexagonal.application.domain.event.Event;
+import br.com.fullcycle.hexagonal.application.domain.event.EventTicket;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-import static jakarta.persistence.GenerationType.IDENTITY;
-
-@Entity
+@Entity(name = "Event")
 @Table(name = "events")
 public class EventEntity {
 
     @Id
-    @GeneratedValue(strategy = IDENTITY)
-    private Long id;
+    private UUID id;
 
     private String name;
 
@@ -23,29 +25,47 @@ public class EventEntity {
 
     private int totalSpots;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private PartnerEntity partnerEntity;
+    private UUID partnerId;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "event")
-    private Set<TicketEntity> ticketEntities;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "event")
+    private Set<EventTicketEntity> tickets;
 
     public EventEntity() {
-        this.ticketEntities = new HashSet<>();
+        this.tickets = new HashSet<>();
     }
 
-    public EventEntity(Long id, String name, LocalDate date, int totalSpots, Set<TicketEntity> ticketEntities) {
+    public EventEntity(UUID id, String name, LocalDate date, int totalSpots, UUID partnerId) {
+        this();
         this.id = id;
         this.name = name;
         this.date = date;
         this.totalSpots = totalSpots;
-        this.ticketEntities = ticketEntities != null ? ticketEntities : new HashSet<>();
+        this.partnerId = partnerId;
     }
 
-    public Long getId() {
+    public static EventEntity of(Event event) {
+        final var entity = new EventEntity(
+                UUID.fromString(event.eventId().value()),
+                event.name().value(),
+                event.date(),
+                event.totalSpots(),
+                UUID.fromString(event.partnerId().value())
+        );
+
+        event.allTickets().forEach(entity::addTicket);
+
+        return entity;
+    }
+
+    private void addTicket(EventTicket ticket) {
+        this.tickets.add(EventTicketEntity.of(this, ticket));
+    }
+
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -73,20 +93,20 @@ public class EventEntity {
         this.totalSpots = totalSpots;
     }
 
-    public PartnerEntity getPartner() {
-        return partnerEntity;
+    public UUID getPartner() {
+        return partnerId;
     }
 
-    public void setPartner(PartnerEntity partnerEntity) {
-        this.partnerEntity = partnerEntity;
+    public void setPartner(UUID partnerId) {
+        this.partnerId = partnerId;
     }
 
-    public Set<TicketEntity> getTickets() {
-        return ticketEntities;
+    public Set<EventTicketEntity> getTickets() {
+        return tickets;
     }
 
-    public void setTickets(Set<TicketEntity> ticketEntities) {
-        this.ticketEntities = ticketEntities;
+    public void setTickets(Set<EventTicketEntity> tickets) {
+        this.tickets = tickets;
     }
 
     @Override
@@ -100,5 +120,18 @@ public class EventEntity {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public Event toEvent() {
+        return Event.restore(
+                this.id.toString(),
+                this.name,
+                this.date.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                this.totalSpots,
+                this.partnerId.toString(),
+                this.tickets.stream()
+                        .map(EventTicketEntity::toEventTicket)
+                        .collect(Collectors.toSet())
+        );
     }
 }

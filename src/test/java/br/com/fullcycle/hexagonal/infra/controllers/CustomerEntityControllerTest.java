@@ -1,7 +1,7 @@
 package br.com.fullcycle.hexagonal.infra.controllers;
 
+import br.com.fullcycle.hexagonal.application.repositories.CustomerRepository;
 import br.com.fullcycle.hexagonal.infra.dtos.CustomerDTO;
-import br.com.fullcycle.hexagonal.infra.jpa.repositories.CustomerJpaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +25,10 @@ public class CustomerEntityControllerTest {
     private ObjectMapper mapper;
 
     @Autowired
-    private CustomerJpaRepository customerRepository;
+    private CustomerRepository customerRepository;
 
-    @AfterEach
-    void tearDown() {
+    @BeforeEach
+    void setUp() {
         customerRepository.deleteAll();
     }
 
@@ -37,7 +37,7 @@ public class CustomerEntityControllerTest {
     public void testCreate() throws Exception {
 
         var customer = new CustomerDTO();
-        customer.setCpf("12345678901");
+        customer.setCpf("123.456.789-01");
         customer.setEmail("john.doe@gmail.com");
         customer.setName("John Doe");
 
@@ -48,7 +48,7 @@ public class CustomerEntityControllerTest {
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.header().exists("Location"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isString())
                 .andReturn().getResponse().getContentAsByteArray();
 
         var actualResponse = mapper.readValue(result, CustomerDTO.class);
@@ -62,7 +62,7 @@ public class CustomerEntityControllerTest {
     public void testCreateWithDuplicatedCPFShouldFail() throws Exception {
 
         var customer = new CustomerDTO();
-        customer.setCpf("12345678901");
+        customer.setCpf("123.456.789-01");
         customer.setEmail("john.doe@gmail.com");
         customer.setName("John Doe");
 
@@ -74,7 +74,7 @@ public class CustomerEntityControllerTest {
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.header().exists("Location"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isString())
                 .andReturn().getResponse().getContentAsByteArray();
 
         customer.setEmail("john2@gmail.com");
@@ -94,7 +94,7 @@ public class CustomerEntityControllerTest {
     public void testCreateWithDuplicatedEmailShouldFail() throws Exception {
 
         var customer = new CustomerDTO();
-        customer.setCpf("12345618901");
+        customer.setCpf("123.456.189-01");
         customer.setEmail("john.doe@gmail.com");
         customer.setName("John Doe");
 
@@ -106,10 +106,10 @@ public class CustomerEntityControllerTest {
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.header().exists("Location"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isString())
                 .andReturn().getResponse().getContentAsByteArray();
 
-        customer.setCpf("99999918901");
+        customer.setCpf("999.999.189-01");
 
         // Tenta criar o segundo cliente com o mesmo CPF
         this.mvc.perform(
@@ -126,7 +126,7 @@ public class CustomerEntityControllerTest {
     public void testGet() throws Exception {
 
         var customer = new CustomerDTO();
-        customer.setCpf("12345678901");
+        customer.setCpf("123.456.789-01");
         customer.setEmail("john.doe@gmail.com");
         customer.setName("John Doe");
 

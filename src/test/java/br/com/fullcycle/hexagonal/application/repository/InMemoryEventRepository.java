@@ -34,4 +34,9 @@ public class InMemoryEventRepository implements EventRepository {
 
         return event;
     }
+
+    @Override
+    public void deleteAll() {
+        this.events.clear();
+    }
 }

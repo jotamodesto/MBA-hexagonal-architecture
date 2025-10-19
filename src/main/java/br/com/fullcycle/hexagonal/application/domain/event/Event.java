@@ -9,10 +9,7 @@ import br.com.fullcycle.hexagonal.application.exceptions.ValidationException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public final class Event {
     private static final int ONE = 1;
@@ -21,23 +18,34 @@ public final class Event {
     private LocalDate date;
     private int totalSpots;
     private PartnerId partnerId;
-    private Set<EventTicket> tickets;
+    private final Set<EventTicket> tickets;
 
-    public Event(EventId eventId) {
+    public Event(EventId eventId, Set<EventTicket> tickets) {
         if (eventId == null) {
             throw new ValidationException("Invalid eventId for the Event");
         }
 
         this.eventId = eventId;
-        this.tickets = new HashSet<>(0);
+        this.tickets = tickets != null ? tickets : new HashSet<>(0);
     }
 
-    public Event(EventId eventId, String name, String date, Integer totalSpots, PartnerId partnerId) {
-        this(eventId);
+    public Event(EventId eventId, String name, String date, Integer totalSpots, PartnerId partnerId, Set<EventTicket> tickets) {
+        this(eventId, tickets);
         this.setName(name);
         this.setDate(date);
         this.setTotalSpots(totalSpots);
         this.setPartnerId(partnerId);
+    }
+
+    public static Event restore(String eventId, String name, String date, int totalSpots, String partnerId, Set<EventTicket> tickets) {
+        return new Event(
+                EventId.with(eventId),
+                name,
+                date,
+                totalSpots,
+                PartnerId.with(partnerId),
+                tickets
+        );
     }
 
     @Override
@@ -55,7 +63,7 @@ public final class Event {
     }
 
     public static Event newEvent(String name, String date, Integer totalSpots, Partner partner) {
-        return new Event(EventId.unique(), name, date, totalSpots, partner.partnerId());
+        return new Event(EventId.unique(), name, date, totalSpots, partner.partnerId(), null);
     }
 
     public Ticket reserveTicket(final CustomerId customerId) {
