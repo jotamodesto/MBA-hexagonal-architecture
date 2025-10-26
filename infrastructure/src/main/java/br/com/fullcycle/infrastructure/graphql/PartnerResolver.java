@@ -1,0 +1,32 @@
+package br.com.fullcycle.infrastructure.graphql;
+
+import br.com.fullcycle.application.partner.CreatePartnerUseCase;
+import br.com.fullcycle.application.partner.GetPartnerByIdUseCase;
+import br.com.fullcycle.infrastructure.dtos.PartnerDTO;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.stereotype.Controller;
+
+import java.util.Objects;
+
+@Controller
+public class PartnerResolver {
+    private final CreatePartnerUseCase createPartnerUseCase;
+    private final GetPartnerByIdUseCase getPartnerByIdUseCase;
+
+    public PartnerResolver(CreatePartnerUseCase createPartnerUseCase, GetPartnerByIdUseCase getPartnerByIdUseCase) {
+        this.createPartnerUseCase = Objects.requireNonNull(createPartnerUseCase);
+        this.getPartnerByIdUseCase = Objects.requireNonNull(getPartnerByIdUseCase);
+    }
+
+    @MutationMapping
+    public CreatePartnerUseCase.Output createPartner(@Argument PartnerDTO input) {
+        return createPartnerUseCase.execute(new CreatePartnerUseCase.Input(input.getCnpj(), input.getName(), input.getEmail()));
+    }
+
+    @QueryMapping
+    public GetPartnerByIdUseCase.Output partnerOfId(@Argument String id) {
+        return getPartnerByIdUseCase.execute(new GetPartnerByIdUseCase.Input(id)).orElse(null);
+    }
+}
