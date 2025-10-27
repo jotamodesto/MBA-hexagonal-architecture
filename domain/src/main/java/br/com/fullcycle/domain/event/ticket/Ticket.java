@@ -1,11 +1,16 @@
 package br.com.fullcycle.domain.event.ticket;
 
+import br.com.fullcycle.domain.DomainEvent;
 import br.com.fullcycle.domain.customer.CustomerId;
 import br.com.fullcycle.domain.event.EventId;
+import br.com.fullcycle.domain.event.EventTicketId;
 import br.com.fullcycle.domain.exceptions.ValidationException;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class Ticket {
     private final TicketId ticketId;
@@ -14,6 +19,7 @@ public class Ticket {
     private TicketStatus ticketStatus;
     private Instant paidAt;
     private Instant reservedAt;
+    private Set<DomainEvent> domainEvents;
 
     public Ticket(TicketId ticketId, CustomerId customerId, EventId eventId, TicketStatus ticketStatus, Instant paidAt, Instant reservedAt) {
         if (ticketId == null) {
@@ -26,6 +32,7 @@ public class Ticket {
         this.setTicketStatus(ticketStatus);
         this.setPaidAt(paidAt);
         this.setReservedAt(reservedAt);
+        this.domainEvents = new HashSet<>();
     }
 
     @Override
@@ -44,6 +51,13 @@ public class Ticket {
 
     public static Ticket newTicket(EventId eventId, CustomerId customerId) {
         return new Ticket(TicketId.unique(), customerId, eventId, TicketStatus.PENDING, null, Instant.now());
+    }
+
+    public static Ticket newTicket(final EventTicketId eventTicketId, EventId eventId, CustomerId customerId) {
+        final var ticket = newTicket(eventId, customerId);
+        ticket.domainEvents.add(new TicketCreated(ticket.ticketId, eventTicketId, eventId, customerId));
+        
+        return ticket;
     }
 
     public TicketId ticketId() {
@@ -104,5 +118,9 @@ public class Ticket {
         }
 
         this.reservedAt = reservedAt;
+    }
+
+    public Set<DomainEvent> allDomainEvents() {
+        return Collections.unmodifiableSet(domainEvents);
     }
 }

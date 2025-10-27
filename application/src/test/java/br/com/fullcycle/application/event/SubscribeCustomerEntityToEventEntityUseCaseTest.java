@@ -8,7 +8,6 @@ import br.com.fullcycle.domain.customer.CustomerId;
 import br.com.fullcycle.domain.event.Event;
 import br.com.fullcycle.domain.partner.Partner;
 import br.com.fullcycle.domain.exceptions.ValidationException;
-import br.com.fullcycle.domain.event.ticket.TicketStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,8 +31,7 @@ class SubscribeCustomerEntityToEventEntityUseCaseTest {
 
         useCase = new SubscribeCustomerToEventUseCase(
                 customerRepository,
-                eventRepository,
-                new InMemoryTicketRepository()
+                eventRepository
         );
 
         johnDoe = Customer.newCustomer("John Doe", "123.456.789-01", "john.doe@gmail.com");
@@ -60,9 +58,7 @@ class SubscribeCustomerEntityToEventEntityUseCaseTest {
 
         // then
         Assertions.assertEquals(expectedEventId, output.eventId());
-        Assertions.assertNotNull(output.ticketId());
         Assertions.assertNotNull(output.reservationDate());
-        Assertions.assertEquals(TicketStatus.PENDING.name(), output.ticketStatus());
 
         final var actualEvent = eventRepository.eventOfId(disneyOnIce.eventId());
         Assertions.assertEquals(expectedTicketsSize, actualEvent.get().allTickets().size());

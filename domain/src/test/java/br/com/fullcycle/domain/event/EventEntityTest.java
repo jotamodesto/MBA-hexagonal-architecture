@@ -3,7 +3,6 @@ package br.com.fullcycle.domain.event;
 import br.com.fullcycle.domain.customer.CustomerId;
 import br.com.fullcycle.domain.exceptions.ValidationException;
 import br.com.fullcycle.domain.partner.Partner;
-import br.com.fullcycle.domain.event.ticket.TicketStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -107,27 +106,27 @@ public class EventEntityTest {
         // given
         final var expectedTickets = 1;
         final var expectedTicketOrder = 1;
+        final var expectedDomainEventType = "event-ticket.reserved";
         final var expectedCustomerId = CustomerId.unique();
-        final var expectedTicketStatus = TicketStatus.PENDING;
 
         // when
         final var actualEvent = Event.newEvent(EXPECTED_NAME, EXPECTED_DATE, EXPECTED_TOTAL_SPOTS, partner);
         final var actualTicket = actualEvent.reserveTicket(expectedCustomerId);
         final var actualEventTicket = actualEvent.allTickets().iterator().next();
+        final var actualDomainEvent = actualEvent.allDomainEvents().iterator().next();
 
         // then
         Assertions.assertEquals(expectedTickets, actualEvent.allTickets().size());
 
-        Assertions.assertNotNull(actualTicket.eventId());
-        Assertions.assertNotNull(actualTicket.reservedAt());
-        Assertions.assertNull(actualTicket.paidAt());
+        Assertions.assertNotNull(actualTicket.eventTicketId());
         Assertions.assertEquals(actualEvent.eventId(), actualTicket.eventId());
         Assertions.assertEquals(expectedCustomerId, actualTicket.customerId());
-        Assertions.assertEquals(expectedTicketStatus, actualTicket.status());
 
         Assertions.assertEquals(expectedTicketOrder, actualEventTicket.ordering());
         Assertions.assertEquals(actualEvent.eventId(), actualEventTicket.eventId());
         Assertions.assertEquals(expectedCustomerId, actualEventTicket.customerId());
         Assertions.assertEquals(actualTicket.ticketId(), actualEventTicket.ticketId());
+
+        Assertions.assertEquals(expectedDomainEventType, actualDomainEvent.type());
     }
 }
