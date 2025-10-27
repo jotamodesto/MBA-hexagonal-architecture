@@ -1,14 +1,17 @@
 package br.com.fullcycle.infrastructure.controllers;
 
+import br.com.fullcycle.application.Presenter;
 import br.com.fullcycle.application.customer.CreateCustomerUseCase;
 import br.com.fullcycle.application.customer.GetCustomerByIdUseCase;
 import br.com.fullcycle.domain.exceptions.ValidationException;
+import br.com.fullcycle.infrastructure.controllers.presenters.GetCustomerByIdResponseEntity;
 import br.com.fullcycle.infrastructure.dtos.CustomerDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.Objects;
+import java.util.Optional;
 
 // Controller é um Adapter
 @RestController
@@ -35,9 +38,9 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> get(@PathVariable String id) {
-        return getCustomerByIdUseCase.execute(new GetCustomerByIdUseCase.Input(id))
-                .map(ResponseEntity::ok)
-                .orElseGet(ResponseEntity.notFound()::build);
+    public Object get(@PathVariable String id) {
+        Presenter<Optional<GetCustomerByIdUseCase.Output>, Object> presenter = new GetCustomerByIdResponseEntity();
+
+        return getCustomerByIdUseCase.execute(new GetCustomerByIdUseCase.Input(id), presenter);
     }
 }
